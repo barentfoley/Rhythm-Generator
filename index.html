@@ -12,6 +12,7 @@
       --accent: #2563eb;
       --border: #e2e8f0;
       --text: #1e293b;
+      --selected: #3b82f6;
     }
 
     * {
@@ -61,7 +62,13 @@
       font-weight: 700;
     }
 
-    .settings-btn {
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
       background: #f1f5f9;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -75,7 +82,7 @@
       transition: background 0.15s ease;
     }
 
-    .settings-btn:hover {
+    .icon-btn:hover {
       background: #e2e8f0;
     }
 
@@ -86,7 +93,7 @@
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 14px;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
     }
 
@@ -126,6 +133,17 @@
       background-repeat: no-repeat;
       background-position: right 10px center;
       padding-right: 28px;
+    }
+
+    .time-sig-group {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .time-sig-group span {
+      font-weight: 700;
+      color: #64748b;
     }
 
     .toggle-container {
@@ -177,6 +195,11 @@
       transform: translateX(18px);
     }
 
+    #stringInputWrapper {
+      display: none;
+      margin-bottom: 10px;
+    }
+
     .palette {
       display: flex;
       flex-wrap: wrap;
@@ -198,6 +221,7 @@
       min-height: 48px;
       min-width: 44px;
       touch-action: manipulation;
+      transition: all 0.15s ease;
     }
 
     .palette button:hover {
@@ -206,6 +230,13 @@
 
     .palette button:active {
       transform: scale(0.97);
+    }
+
+    .palette button.active-modifier {
+      background: #dbeafe;
+      border-color: #3b82f6;
+      color: #1d4ed8;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
     .palette button.beam-tool {
@@ -220,6 +251,12 @@
       color: #ffffff;
     }
 
+    .palette button.edit-btn {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+    }
+
     .note-btn svg {
       vertical-align: middle;
       display: inline-block;
@@ -227,13 +264,16 @@
       pointer-events: none;
     }
 
-    #notation-output {
+    .notation-wrapper {
+      position: relative;
       margin-top: 10px;
+    }
+
+    #notation-output {
       background: #fff;
       border: 1px dashed var(--border);
       border-radius: 10px;
       display: flex;
-      justify-content: flex-start;
       align-items: center;
       min-height: 160px;
       overflow-x: auto;
@@ -241,13 +281,66 @@
       padding: 8px;
     }
 
+    #notation-output.centered-canvas svg {
+      margin: 0 auto;
+      display: block;
+    }
+
+    .fullscreen-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      z-index: 99999;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+    }
+
+    .fullscreen-overlay.active {
+      display: flex;
+    }
+
+    .fullscreen-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #334155;
+    }
+
+    .fullscreen-canvas {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
     .vf-clickable-note {
       cursor: pointer;
       touch-action: manipulation;
     }
 
-    .vf-clickable-note:active {
-      opacity: 0.5;
+    .vf-clickable-note.selected path,
+    .vf-clickable-note.selected ellipse,
+    .vf-clickable-note.selected rect {
+      fill: var(--selected) !important;
+      stroke: var(--selected) !important;
     }
 
     .actions {
@@ -291,15 +384,22 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" onclick="handleContainerClick(event)">
   <div class="header-bar">
     <h2>Rhythm Builder</h2>
-    <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-    </button>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openFullscreen(event)" aria-label="Fullscreen" title="Fullscreen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+      <button class="icon-btn" onclick="toggleSettings(event)" aria-label="Settings" title="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="settings-panel" id="settingsPanel">
@@ -307,7 +407,7 @@
       <label for="beamMode">Beaming Mode</label>
       <select id="beamMode" onchange="renderScore()">
         <option value="auto">Auto (Metric Rules)</option>
-        <option value="manual">Manual ([Brackets] & Tap)</option>
+        <option value="manual">Manual ([Brackets])</option>
       </select>
     </div>
 
@@ -319,10 +419,26 @@
       </select>
     </div>
 
+    <div>
+      <label for="exportBgMode">Export Background</label>
+      <select id="exportBgMode">
+        <option value="white">White Card Background</option>
+        <option value="transparent">Transparent Background</option>
+      </select>
+    </div>
+
     <div class="toggle-container">
-      <label for="toggleStringInput" style="margin-bottom:0;">Show String Input</label>
+      <label for="toggleManualBeamTool" style="margin-bottom:0;">Show Beam Tool</label>
       <label class="toggle-switch">
-        <input type="checkbox" id="toggleStringInput" checked onchange="toggleStringVisibility()">
+        <input type="checkbox" id="toggleManualBeamTool" onchange="updatePaletteButtons()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-container">
+      <label for="toggleStringInput" style="margin-bottom:0;">Show Rhythm String</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleStringInput" onchange="toggleStringVisibility()">
         <span class="slider"></span>
       </label>
     </div>
@@ -339,13 +455,34 @@
     </div>
 
     <div>
-      <label for="timeSig">Time Signature</label>
-      <select id="timeSig" onchange="renderScore()">
-        <option value="4/4">4/4</option>
-        <option value="3/4">3/4</option>
-        <option value="2/4">2/4</option>
-        <option value="6/8">6/8</option>
-      </select>
+      <label>Time Signature</label>
+      <div class="time-sig-group">
+        <select id="timeSigTop" onchange="renderScore()">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+          <option value="16">16</option>
+        </select>
+        <span>/</span>
+        <select id="timeSigBottom" onchange="renderScore()">
+          <option value="2">2</option>
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+        </select>
+      </div>
     </div>
 
     <div id="pitch-container">
@@ -356,12 +493,14 @@
 
   <div id="stringInputWrapper">
     <label for="rhythmInput">Rhythm String</label>
-    <input type="text" id="rhythmInput" value="wr, hr, qr, 8r, q, 8, 8" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="renderScore()" />
+    <input type="text" id="rhythmInput" value="" autocorrect="off" autocapitalize="none" spellcheck="false" oninput="handleManualStringInput()" />
   </div>
 
   <div class="palette" id="notePalette"></div>
 
-  <div id="notation-output"></div>
+  <div class="notation-wrapper">
+    <div id="notation-output" class="centered-canvas"></div>
+  </div>
 
   <div class="actions">
     <button class="btn-primary" onclick="exportPNG()">Download PNG</button>
@@ -369,8 +508,24 @@
   </div>
 </div>
 
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+  <button class="fullscreen-close-btn" onclick="closeFullscreen()" aria-label="Close Fullscreen" title="Exit Fullscreen">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+  <div class="fullscreen-canvas" id="fullscreenCanvas"></div>
+</div>
+
 <script>
   const { Renderer, Stave, StaveNote, Dot, Formatter, Beam, StaveTie, Barline } = Vex.Flow;
+
+  const defaultPresets = [
+    'h, q, 8, 16, 16, 8, 8~, q, q., 8',
+    '8, 8~, q, 8r, 8, q, qr, q, h',
+    '8, 16, 16, 16, 16, 8, 8r, 8, 8., 16, 16, 16, 8, q, hr'
+  ];
 
   const baseBeatValues = {
     'w': 4,
@@ -392,18 +547,15 @@
   ];
 
   const paletteDefinitions = [
-    { token: 'w',  name: 'Whole',          vexDuration: 'w',  dotted: false, isRest: false },
-    { token: 'h.', name: 'Dotted Half',    vexDuration: 'h',  dotted: true,  isRest: false },
-    { token: 'h',  name: 'Half',           vexDuration: 'h',  dotted: false, isRest: false },
-    { token: 'q.', name: 'Dotted Quarter', vexDuration: 'q',  dotted: true,  isRest: false },
-    { token: 'q',  name: 'Quarter',        vexDuration: 'q',  dotted: false, isRest: false },
-    { token: '8.', name: 'Dotted 8th',     vexDuration: '8',  dotted: true,  isRest: false },
-    { token: '8',  name: '8th',            vexDuration: '8',  dotted: false, isRest: false },
-    { token: '16', name: '16th',           vexDuration: '16', dotted: false, isRest: false },
-    { token: 'wr', name: 'Whole Rest',     vexDuration: 'wr', dotted: false, isRest: true, restType: 'w' },
-    { token: 'hr', name: 'Half Rest',      vexDuration: 'hr', dotted: false, isRest: true, restType: 'h' },
-    { token: 'qr', name: 'Quarter Rest',   vexDuration: 'qr', dotted: false, isRest: true, restType: 'q' },
-    { token: '8r', name: '8th Rest',       vexDuration: '8r', dotted: false, isRest: true, restType: '8' }
+    { token: 'w',  name: 'Whole',        vexDuration: 'w',  isRest: false },
+    { token: 'h',  name: 'Half',         vexDuration: 'h',  isRest: false },
+    { token: 'q',  name: 'Quarter',      vexDuration: 'q',  isRest: false },
+    { token: '8',  name: '8th',          vexDuration: '8',  isRest: false },
+    { token: '16', name: '16th',         vexDuration: '16', isRest: false },
+    { token: 'wr', name: 'Whole Rest',   vexDuration: 'wr', isRest: true, restType: 'w' },
+    { token: 'hr', name: 'Half Rest',    vexDuration: 'hr', isRest: true, restType: 'h' },
+    { token: 'qr', name: 'Quarter Rest', vexDuration: 'qr', isRest: true, restType: 'q' },
+    { token: '8r', name: '8th Rest',     vexDuration: '8r', isRest: true, restType: '8' }
   ];
 
   const clefPitches = {
@@ -422,9 +574,38 @@
     ]
   };
 
-  let selectedNoteIndices = [];
+  let isDotModifierActive = false;
+  let selectedTokenIndex = null;
+  let historyStack = [];
+  let isUndoRedoAction = false;
 
-  function toggleSettings() {
+  function pushHistory() {
+    if (isUndoRedoAction) return;
+    const currentVal = document.getElementById('rhythmInput').value;
+    if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== currentVal) {
+      historyStack.push(currentVal);
+      if (historyStack.length > 50) historyStack.shift();
+    }
+  }
+
+  function handleUndo() {
+    if (historyStack.length <= 1) return;
+    isUndoRedoAction = true;
+    historyStack.pop();
+    const prev = historyStack[historyStack.length - 1];
+    document.getElementById('rhythmInput').value = prev;
+    selectedTokenIndex = null;
+    renderScore();
+    isUndoRedoAction = false;
+  }
+
+  function handleManualStringInput() {
+    pushHistory();
+    renderScore();
+  }
+
+  function toggleSettings(e) {
+    if (e) e.stopPropagation();
     const panel = document.getElementById('settingsPanel');
     panel.classList.toggle('open');
   }
@@ -432,6 +613,44 @@
   function toggleStringVisibility() {
     const isChecked = document.getElementById('toggleStringInput').checked;
     document.getElementById('stringInputWrapper').style.display = isChecked ? 'block' : 'none';
+  }
+
+  function toggleDotModifier() {
+    isDotModifierActive = !isDotModifierActive;
+    updatePaletteButtons();
+  }
+
+  function openFullscreen(e) {
+    if (e) e.stopPropagation();
+    const overlay = document.getElementById('fullscreenOverlay');
+    const fsCanvas = document.getElementById('fullscreenCanvas');
+    overlay.classList.add('active');
+    fsCanvas.innerHTML = '';
+    renderScoreToTarget(fsCanvas, true);
+  }
+
+  function closeFullscreen() {
+    document.getElementById('fullscreenOverlay').classList.remove('active');
+  }
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeFullscreen();
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+      e.preventDefault();
+      handleUndo();
+    }
+    if ((e.key === 'Backspace' || e.key === 'Delete') && selectedTokenIndex !== null) {
+      e.preventDefault();
+      handleBackspace();
+    }
+  });
+
+  function handleContainerClick(e) {
+    if (e.target.closest('.vf-clickable-note') || e.target.closest('.palette button')) return;
+    if (selectedTokenIndex !== null) {
+      selectedTokenIndex = null;
+      renderScore();
+    }
   }
 
   function createVexflowButtonIcon(vexDuration, isDotted, isRest, restType) {
@@ -450,7 +669,7 @@
       staveY = -12;
       staveX = -4;
     } else if (isRest) {
-      if (restType === 'w') staveY = -27; // Clean standalone whole rest block
+      if (restType === 'w') staveY = -27;
       else if (restType === 'h') staveY = -38;
       else staveY = -42;
     }
@@ -459,7 +678,6 @@
     stave.setBegBarType(Barline.type.NONE);
     stave.setEndBarType(Barline.type.NONE);
 
-    // No lines for whole rest; line 2 (middle) preserved for half rest
     if (isRest && restType === 'h') {
       stave.options.num_lines = 5;
       stave.setConfigForLines([
@@ -492,9 +710,7 @@
       svg.querySelectorAll('rect').forEach(rect => {
         const h = parseFloat(rect.getAttribute('height') || '0');
         const w = parseFloat(rect.getAttribute('width') || '0');
-        if (h > 15 && w < 4) {
-          rect.remove();
-        }
+        if (h > 15 && w < 4) rect.remove();
       });
 
       svg.querySelectorAll('path').forEach(p => {
@@ -521,7 +737,6 @@
     renderer.resize(width, height);
     const ctx = renderer.getContext();
 
-    // Raised position with stems pointing up (1) and tie curved underneath noteheads (1)
     const stave = new Stave(-4, -14, width + 12);
     stave.options.num_lines = 0;
     stave.setBegBarType(Barline.type.NONE);
@@ -539,7 +754,6 @@
       first_indices: [0],
       last_indices: [0]
     });
-    // Tie under noteheads (v)
     tie.setDirection(1);
     tie.setContext(ctx).draw();
 
@@ -559,17 +773,25 @@
     const palette = document.getElementById('notePalette');
     palette.innerHTML = '';
 
+    const dotBtn = document.createElement('button');
+    dotBtn.className = 'note-btn' + (isDotModifierActive ? ' active-modifier' : '');
+    dotBtn.onclick = toggleDotModifier;
+    dotBtn.innerHTML = `<span style="font-size: 1.4rem; line-height: 1; font-weight: bold;">•</span><span style="margin-left: 4px; font-weight: 600;">Dot</span>`;
+    dotBtn.title = "Toggle dotted rhythm on/off";
+    palette.appendChild(dotBtn);
+
     paletteDefinitions.forEach(item => {
       const btn = document.createElement('button');
       btn.className = 'note-btn';
-      btn.onclick = () => appendToken(item.token);
+      btn.onclick = () => handlePaletteNoteClick(item.token);
 
       if (mode === 'graphic') {
-        const iconSvg = createVexflowButtonIcon(item.vexDuration, item.dotted, item.isRest, item.restType);
+        const iconSvg = createVexflowButtonIcon(item.vexDuration, isDotModifierActive, item.isRest, item.restType);
         btn.innerHTML = `${iconSvg}`;
         btn.title = `${item.name} (${item.token})`;
       } else {
-        btn.textContent = `${item.name} (${item.token})`;
+        const dotSuffix = isDotModifierActive ? '.' : '';
+        btn.textContent = `${item.name} (${item.token}${dotSuffix})`;
       }
       palette.appendChild(btn);
     });
@@ -580,17 +802,34 @@
     tieBtn.innerHTML = `${tieIconSvg}<span style="margin-left: 2px; font-weight:600;">Tie</span>`;
     palette.appendChild(tieBtn);
 
-    const beamBtn = document.createElement('button');
-    beamBtn.className = 'beam-tool';
-    beamBtn.onclick = beamLastTwoNotes;
-    beamBtn.textContent = '[Beam Last 2]';
-    palette.appendChild(beamBtn);
+    const showBeamTool = document.getElementById('toggleManualBeamTool').checked;
+    if (showBeamTool) {
+      const beamBtn = document.createElement('button');
+      beamBtn.className = 'beam-tool';
+      beamBtn.onclick = beamLastTwoNotes;
+      beamBtn.textContent = '[Beam Last 2]';
+      palette.appendChild(beamBtn);
 
-    const unbeamBtn = document.createElement('button');
-    unbeamBtn.className = 'beam-tool';
-    unbeamBtn.onclick = unbeamLastGroup;
-    unbeamBtn.textContent = '[Unbeam Last Group]';
-    palette.appendChild(unbeamBtn);
+      const unbeamBtn = document.createElement('button');
+      unbeamBtn.className = 'beam-tool';
+      unbeamBtn.onclick = unbeamLastGroup;
+      unbeamBtn.textContent = '[Unbeam Last Group]';
+      palette.appendChild(unbeamBtn);
+    }
+
+    const backspaceBtn = document.createElement('button');
+    backspaceBtn.className = 'edit-btn';
+    backspaceBtn.onclick = handleBackspace;
+    backspaceBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg><span style="margin-left: 4px;">Delete</span>`;
+    backspaceBtn.title = "Turn note into rest or remove end";
+    palette.appendChild(backspaceBtn);
+
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 'edit-btn';
+    undoBtn.onclick = handleUndo;
+    undoBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg><span style="margin-left: 4px;">Undo</span>`;
+    undoBtn.title = "Undo last action";
+    palette.appendChild(undoBtn);
 
     const clearBtn = document.createElement('button');
     clearBtn.style.color = '#ef4444';
@@ -662,34 +901,10 @@
     };
   }
 
-  function getMeasureCapacityInQuarterBeats(timeSig) {
-    const [num, den] = timeSig.split('/').map(Number);
+  function getMeasureCapacityInQuarterBeats() {
+    const num = parseInt(document.getElementById('timeSigTop').value, 10) || 4;
+    const den = parseInt(document.getElementById('timeSigBottom').value, 10) || 4;
     return num * (4 / den);
-  }
-
-  function appendToken(val) {
-    const input = document.getElementById('rhythmInput');
-    const parts = input.value.split(',').map(s => s.trim()).filter(Boolean);
-    parts.push(val);
-    input.value = parts.join(', ');
-    renderScore();
-  }
-
-  function addTieToLast() {
-    const input = document.getElementById('rhythmInput');
-    const parts = input.value.split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length === 0) return;
-    if (!parts[parts.length - 1].endsWith('~')) {
-      parts[parts.length - 1] += '~';
-      input.value = parts.join(', ');
-      renderScore();
-    }
-  }
-
-  function clearRhythm() {
-    document.getElementById('rhythmInput').value = '';
-    selectedNoteIndices = [];
-    renderScore();
   }
 
   function parseInputToTokens(inputStr) {
@@ -726,7 +941,7 @@
         const currentGroup = p.forcedGroup;
         const groupNotes = [];
         while (i < parsedArray.length && parsedArray[i].forcedGroup === currentGroup) {
-          groupNotes.push(parsedArray[i].raw);
+          groupNotes.push(p.raw);
           i++;
         }
         tokens.push(`[${groupNotes.join(', ')}]`);
@@ -736,6 +951,79 @@
       }
     }
     return tokens.join(', ');
+  }
+
+  function handlePaletteNoteClick(baseToken) {
+    let token = baseToken;
+    if (isDotModifierActive && !token.endsWith('r') && !token.endsWith('.')) {
+      token += '.';
+    }
+
+    const input = document.getElementById('rhythmInput');
+    const parsed = parseInputToTokens(input.value);
+
+    if (selectedTokenIndex !== null && selectedTokenIndex >= 0 && selectedTokenIndex < parsed.length) {
+      const hasTie = parsed[selectedTokenIndex].hasTie;
+      const fg = parsed[selectedTokenIndex].forcedGroup;
+      const newTokenObj = parseDurationToken(token + (hasTie ? '~' : ''), fg);
+      parsed[selectedTokenIndex] = newTokenObj;
+      input.value = reconstructRhythmString(parsed);
+      pushHistory();
+      renderScore();
+      return;
+    }
+
+    const parts = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    parts.push(token);
+    input.value = parts.join(', ');
+    pushHistory();
+    renderScore();
+  }
+
+  function handleBackspace() {
+    const input = document.getElementById('rhythmInput');
+    const parsed = parseInputToTokens(input.value);
+    if (parsed.length === 0) return;
+
+    if (selectedTokenIndex !== null && selectedTokenIndex >= 0 && selectedTokenIndex < parsed.length) {
+      const target = parsed[selectedTokenIndex];
+      if (!target.isRest) {
+        let restToken = target.durType + 'r';
+        parsed[selectedTokenIndex] = parseDurationToken(restToken, null);
+        input.value = reconstructRhythmString(parsed);
+        pushHistory();
+        renderScore();
+      }
+      return;
+    }
+
+    parsed.pop();
+    input.value = reconstructRhythmString(parsed);
+    pushHistory();
+    renderScore();
+  }
+
+  function addTieToLast() {
+    const input = document.getElementById('rhythmInput');
+    const parsed = parseInputToTokens(input.value);
+    if (parsed.length === 0) return;
+
+    const idx = (selectedTokenIndex !== null) ? selectedTokenIndex : parsed.length - 1;
+    if (parsed[idx] && !parsed[idx].isRest) {
+      if (!parsed[idx].raw.endsWith('~')) {
+        parsed[idx].raw += '~';
+        input.value = reconstructRhythmString(parsed);
+        pushHistory();
+        renderScore();
+      }
+    }
+  }
+
+  function clearRhythm() {
+    document.getElementById('rhythmInput').value = '';
+    selectedTokenIndex = null;
+    pushHistory();
+    renderScore();
   }
 
   function beamLastTwoNotes() {
@@ -759,6 +1047,7 @@
       parsed[idx2].forcedGroup = newGroupId;
       document.getElementById('beamMode').value = 'manual';
       document.getElementById('rhythmInput').value = reconstructRhythmString(parsed);
+      pushHistory();
       renderScore();
     }
   }
@@ -775,51 +1064,27 @@
       }
     }
     document.getElementById('rhythmInput').value = reconstructRhythmString(parsed);
+    pushHistory();
     renderScore();
   }
 
-  function handleNoteClick(sourceTokenIndex) {
-    if (document.getElementById('beamMode').value !== 'manual') {
-      document.getElementById('beamMode').value = 'manual';
+  function handleNoteSelect(sourceTokenIndex, e) {
+    if (e) e.stopPropagation();
+    if (selectedTokenIndex === sourceTokenIndex) {
+      selectedTokenIndex = null;
+    } else {
+      selectedTokenIndex = sourceTokenIndex;
     }
-
-    selectedNoteIndices.push(sourceTokenIndex);
-
-    if (selectedNoteIndices.length === 2) {
-      let [first, second] = selectedNoteIndices;
-      if (first > second) [first, second] = [second, first];
-
-      const parsed = parseInputToTokens(document.getElementById('rhythmInput').value);
-
-      const firstGroup = parsed[first].forcedGroup;
-      const isAlreadyGrouped = firstGroup && parsed.slice(first, second + 1).every(n => n.forcedGroup === firstGroup);
-
-      if (isAlreadyGrouped) {
-        for (let i = first; i <= second; i++) {
-          parsed[i].forcedGroup = null;
-        }
-      } else {
-        const newGroup = Date.now();
-        for (let i = first; i <= second; i++) {
-          if (!parsed[i].isRest && (parsed[i].durType === '8' || parsed[i].durType === '16')) {
-            parsed[i].forcedGroup = newGroup;
-          }
-        }
-      }
-
-      selectedNoteIndices = [];
-      document.getElementById('rhythmInput').value = reconstructRhythmString(parsed);
-      renderScore();
-    }
+    renderScore();
   }
 
-  function calculateAutoBeamGroups(measureParsedNotes, timeSig) {
+  function calculateAutoBeamGroups(measureParsedNotes, timeSigTop, timeSigBottom) {
     const beamGroups = [];
     let currentBeam = [];
     let currentBeatBoundary = 0;
 
-    let beatUnit = (timeSig === '6/8') ? 1.5 : 1.0;
-    const is44 = (timeSig === '4/4');
+    let beatUnit = (timeSigBottom === 8 && timeSigTop % 3 === 0) ? 1.5 : (4 / timeSigBottom);
+    const is44 = (timeSigTop === 4 && timeSigBottom === 4);
 
     let currentPos = 0;
     measureParsedNotes.forEach((p, idx) => {
@@ -867,7 +1132,17 @@
   function renderScore() {
     const container = document.getElementById('notation-output');
     container.innerHTML = '';
+    renderScoreToTarget(container, false);
 
+    const fsOverlay = document.getElementById('fullscreenOverlay');
+    if (fsOverlay.classList.contains('active')) {
+      const fsCanvas = document.getElementById('fullscreenCanvas');
+      fsCanvas.innerHTML = '';
+      renderScoreToTarget(fsCanvas, true);
+    }
+  }
+
+  function renderScoreToTarget(container, isFullscreen = false) {
     const rawInput = document.getElementById('rhythmInput').value;
     const flattenedParsed = parseInputToTokens(rawInput);
     if (flattenedParsed.length === 0) return;
@@ -875,9 +1150,11 @@
     const beamMode = document.getElementById('beamMode').value;
     const clef = document.getElementById('clef').value;
     const isPercussion = clef === 'percussion';
-    const timeSig = document.getElementById('timeSig').value;
+    const topNum = parseInt(document.getElementById('timeSigTop').value, 10) || 4;
+    const botNum = parseInt(document.getElementById('timeSigBottom').value, 10) || 4;
+    const timeSig = `${topNum}/${botNum}`;
     const pitch = isPercussion ? 'b/4' : (document.getElementById('pitch').value || 'b/4');
-    const measureCapacity = getMeasureCapacityInQuarterBeats(timeSig);
+    const measureCapacity = getMeasureCapacityInQuarterBeats();
 
     const measureGroups = [];
     let currentGroup = [];
@@ -934,25 +1211,28 @@
       measureGroups.push(currentGroup);
     }
 
-    const firstMeasureBaseWidth = 130;
-    const noteSpacing = 50;
+    const scaleFactor = isFullscreen ? 1.3 : 1.0;
+    const firstMeasureBaseWidth = 130 * scaleFactor;
+    const noteSpacing = 50 * scaleFactor;
     const measureWidths = measureGroups.map((group, idx) => {
-      const minW = idx === 0 ? firstMeasureBaseWidth : 85;
-      return Math.max(minW, group.length * noteSpacing + (idx === 0 ? 75 : 35));
+      const minW = idx === 0 ? firstMeasureBaseWidth : 85 * scaleFactor;
+      return Math.max(minW, group.length * noteSpacing + (idx === 0 ? 75 : 35) * scaleFactor);
     });
 
     const totalWidth = measureWidths.reduce((a, b) => a + b, 0) + 30;
+    const totalHeight = 150 * scaleFactor;
 
     const renderer = new Renderer(container, Renderer.Backends.SVG);
-    renderer.resize(totalWidth, 150);
+    renderer.resize(totalWidth, totalHeight);
     const context = renderer.getContext();
+    context.scale(scaleFactor, scaleFactor);
 
     let currentX = 10;
     const allStaveNotes = [];
     const tieIndices = [];
 
     measureGroups.forEach((group, mIdx) => {
-      const width = measureWidths[mIdx];
+      const width = measureWidths[mIdx] / scaleFactor;
       const stave = new Stave(currentX, 15, width);
 
       if (isPercussion) {
@@ -1014,7 +1294,7 @@
           if (chunk.length > 1) beamIndexGroups.push(chunk);
         });
       } else {
-        beamIndexGroups = calculateAutoBeamGroups(group, timeSig);
+        beamIndexGroups = calculateAutoBeamGroups(group, topNum, botNum);
       }
 
       const beams = [];
@@ -1041,7 +1321,12 @@
         if (svgElement) {
           svgElement.classList.add('vf-clickable-note');
           const sourceIdx = group[localIdx].sourceTokenIndex;
-          svgElement.onclick = () => handleNoteClick(sourceIdx);
+
+          if (selectedTokenIndex === sourceIdx) {
+            svgElement.classList.add('selected');
+          }
+
+          svgElement.onclick = (e) => handleNoteSelect(sourceIdx, e);
         }
       });
 
@@ -1093,12 +1378,19 @@
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
+    const isTransparent = document.getElementById('exportBgMode').value === 'transparent';
     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = function () {
       canvas.width = img.width * 2;
       canvas.height = img.height * 2;
+
+      if (!isTransparent) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
       ctx.scale(2, 2);
       ctx.drawImage(img, 0, 0);
 
@@ -1108,6 +1400,11 @@
     };
     img.src = url;
   }
+
+  // Choose a random preset on load
+  const randomPreset = defaultPresets[Math.floor(Math.random() * defaultPresets.length)];
+  document.getElementById('rhythmInput').value = randomPreset;
+  pushHistory();
 
   handleClefChange();
   updatePaletteButtons();
