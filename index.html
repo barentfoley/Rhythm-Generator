@@ -537,26 +537,28 @@
   };
 
   const standardDurations = [
-    { durType: 'w',  beatValue: 4,    isDotted: false },
-    { durType: 'h.', beatValue: 3,    isDotted: true,  baseType: 'h' },
-    { durType: 'h',  beatValue: 2,    isDotted: false },
-    { durType: 'q.', beatValue: 1.5,  isDotted: true,  baseType: 'q' },
-    { durType: 'q',  beatValue: 1,    isDotted: false },
-    { durType: '8.', beatValue: 0.75, isDotted: true,  baseType: '8' },
-    { durType: '8',  beatValue: 0.5,  isDotted: false },
-    { durType: '16', beatValue: 0.25, isDotted: false }
+    { durType: 'w',   beatValue: 4,     isDotted: false },
+    { durType: 'h.',  beatValue: 3,     isDotted: true,  baseType: 'h' },
+    { durType: 'h',   beatValue: 2,     isDotted: false },
+    { durType: 'q.',  beatValue: 1.5,   isDotted: true,  baseType: 'q' },
+    { durType: 'q',   beatValue: 1,     isDotted: false },
+    { durType: '8.',  beatValue: 0.75,  isDotted: true,  baseType: '8' },
+    { durType: '8',   beatValue: 0.5,   isDotted: false },
+    { durType: '16.', beatValue: 0.375, isDotted: true,  baseType: '16' },
+    { durType: '16',  beatValue: 0.25,  isDotted: false }
   ];
 
   const paletteDefinitions = [
-    { token: 'w',  name: 'Whole',        vexDuration: 'w',  isRest: false },
-    { token: 'h',  name: 'Half',         vexDuration: 'h',  isRest: false },
-    { token: 'q',  name: 'Quarter',      vexDuration: 'q',  isRest: false },
-    { token: '8',  name: '8th',          vexDuration: '8',  isRest: false },
-    { token: '16', name: '16th',         vexDuration: '16', isRest: false },
-    { token: 'wr', name: 'Whole Rest',   vexDuration: 'wr', isRest: true, restType: 'w' },
-    { token: 'hr', name: 'Half Rest',    vexDuration: 'hr', isRest: true, restType: 'h' },
-    { token: 'qr', name: 'Quarter Rest', vexDuration: 'qr', isRest: true, restType: 'q' },
-    { token: '8r', name: '8th Rest',     vexDuration: '8r', isRest: true, restType: '8' }
+    { token: 'w',   name: 'Whole',        vexDuration: 'w',   isRest: false },
+    { token: 'h',   name: 'Half',         vexDuration: 'h',   isRest: false },
+    { token: 'q',   name: 'Quarter',      vexDuration: 'q',   isRest: false },
+    { token: '8',   name: '8th',          vexDuration: '8',   isRest: false },
+    { token: '16',  name: '16th',         vexDuration: '16',  isRest: false },
+    { token: 'wr',  name: 'Whole Rest',   vexDuration: 'wr',  isRest: true, restType: 'w' },
+    { token: 'hr',  name: 'Half Rest',    vexDuration: 'hr',  isRest: true, restType: 'h' },
+    { token: 'qr',  name: 'Quarter Rest', vexDuration: 'qr',  isRest: true, restType: 'q' },
+    { token: '8r',  name: '8th Rest',     vexDuration: '8r',  isRest: true, restType: '8' },
+    { token: '16r', name: '16th Rest',    vexDuration: '16r', isRest: true, restType: '16' }
   ];
 
   const clefPitches = {
@@ -666,21 +668,24 @@
     if (isRest && (restType === 'w' || restType === 'h')) {
       const isWhole = (restType === 'w');
       const rectY = isWhole ? 22 : 15.5;
+      const dotSVG = isDotted ? `<circle cx="${width - 8}" cy="${rectY + 3.25}" r="2.2" fill="#1e293b" />` : '';
       return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
         <line x1="4" y1="22" x2="${width - 4}" y2="22" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
-        <rect x="${(width - 13) / 2}" y="${rectY}" width="13" height="6.5" fill="#1e293b" />
+        <rect x="${(width - (isDotted ? 17 : 13)) / 2}" y="${rectY}" width="13" height="6.5" fill="#1e293b" />
+        ${dotSVG}
       </svg>`;
     }
 
     // Individual transform offsets: adjust x/y per token as needed
     const iconOffsets = {
-      'w':  { x: 0, y: -30 }, // Whole note
-      'h':  { x: 0, y: -4  }, // Half note
-      'q':  { x: 0, y: -4  }, // Quarter note
-      '8':  { x: 0, y: -4  }, // 8th note
-      '16': { x: 0, y: -4  }, // 16th note
-      'qr': { x: 0, y: -10 }, // Quarter rest
-      '8r': { x: 0, y: -6  }  // 8th rest
+      'w':   { x: 0, y: -35 }, // Whole note
+      'h':   { x: 0, y: -25 }, // Half note
+      'q':   { x: 0, y: -25 }, // Quarter note
+      '8':   { x: 0, y: -25 }, // 8th note
+      '16':  { x: 0, y: -25 }, // 16th note
+      'qr':  { x: 0, y: -38 }, // Quarter rest
+      '8r':  { x: 0, y: -38 }, // 8th rest
+      '16r': { x: 0, y: -38 }  // 16th rest
     };
 
     const offset = iconOffsets[vexDuration] || { x: 0, y: -4 };
@@ -731,8 +736,8 @@
   }
 
   function createTiedQuarterIcon() {
-    const width = 50;
-    const height = 44;
+    const width = 64;
+    const height = 45;
 
     const tempDiv = document.createElement('div');
     const renderer = new Renderer(tempDiv, Renderer.Backends.SVG);
@@ -766,7 +771,7 @@
 
       // Center notes and tie curve within the button frame
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('transform', 'translate(-1, -7)');
+      g.setAttribute('transform', 'translate(-1, -28)');
 
       while (svg.firstChild) {
         g.appendChild(svg.firstChild);
@@ -790,6 +795,23 @@
     const palette = document.getElementById('notePalette');
     palette.innerHTML = '';
 
+    // Render Note and Rest buttons (Whole through 16th Rest)
+    paletteDefinitions.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'note-btn';
+      btn.onclick = () => handlePaletteNoteClick(item.token);
+
+      if (mode === 'graphic') {
+        btn.innerHTML = createVexflowButtonIcon(item.vexDuration, isDotModifierActive, item.isRest, item.restType);
+        btn.title = `${item.name} (${item.token})`;
+      } else {
+        const dotSuffix = isDotModifierActive ? '.' : '';
+        btn.textContent = `${item.name} (${item.token}${dotSuffix})`;
+      }
+      palette.appendChild(btn);
+    });
+
+    // Dot button placed between 16th Rest and Tie button
     const dotBtn = document.createElement('button');
     dotBtn.className = 'note-btn' + (isDotModifierActive ? ' active-modifier' : '');
     dotBtn.onclick = toggleDotModifier;
@@ -797,21 +819,7 @@
     dotBtn.title = "Toggle dotted rhythm on/off";
     palette.appendChild(dotBtn);
 
-    paletteDefinitions.forEach(item => {
-      const btn = document.createElement('button');
-      btn.className = 'note-btn';
-      btn.onclick = () => handlePaletteNoteClick(item.token);
-
-      if (mode === 'graphic') {
-        btn.innerHTML = createVexflowButtonIcon(item.vexDuration, isDotModifierActive && !item.isRest, item.isRest, item.restType);
-        btn.title = `${item.name} (${item.token})`;
-      } else {
-        const dotSuffix = (isDotModifierActive && !item.isRest) ? '.' : '';
-        btn.textContent = `${item.name} (${item.token}${dotSuffix})`;
-      }
-      palette.appendChild(btn);
-    });
-
+    // Tie button
     const tieBtn = document.createElement('button');
     tieBtn.onclick = addTieToLast;
     tieBtn.innerHTML = `${createTiedQuarterIcon()}<span style="margin-left: 1px; font-weight:600;">Tie</span>`;
@@ -895,11 +903,11 @@
     const hasTie = clean.endsWith('~');
     if (hasTie) clean = clean.slice(0, -1);
 
+    const isDotted = clean.endsWith('.');
+    if (isDotted) clean = clean.slice(0, -1);
+
     const isRest = clean.endsWith('r');
     let durType = isRest ? clean.slice(0, -1) : clean;
-
-    const isDotted = durType.endsWith('.');
-    if (isDotted) durType = durType.slice(0, -1);
 
     const baseVal = baseBeatValues[durType] || 1;
     const beatValue = isDotted ? baseVal * 1.5 : baseVal;
@@ -970,7 +978,7 @@
 
   function handlePaletteNoteClick(baseToken) {
     let token = baseToken;
-    if (isDotModifierActive && !token.endsWith('r') && !token.endsWith('.')) {
+    if (isDotModifierActive && !token.endsWith('.')) {
       token += '.';
     }
 
@@ -1003,7 +1011,7 @@
     if (selectedTokenIndex !== null && selectedTokenIndex >= 0 && selectedTokenIndex < parsed.length) {
       const target = parsed[selectedTokenIndex];
       if (!target.isRest) {
-        let restToken = target.durType + 'r';
+        let restToken = target.durType + 'r' + (target.isDotted ? '.' : '');
         parsed[selectedTokenIndex] = parseDurationToken(restToken, null);
         input.value = reconstructRhythmString(parsed);
         pushHistory();
@@ -1144,6 +1152,25 @@
     return beamGroups;
   }
 
+  function getCalculatedStemDirection(clef, pitch) {
+    // Rhythm Clef: always stems up (1)
+    if (clef === 'percussion') return 1;
+
+    // Treble Clef: Middle line is B4 (b/4) and below is G4 (g/4) -> stems UP (1). Above middle line C5 (c/5) -> stems DOWN (-1)
+    if (clef === 'treble') {
+      if (pitch === 'c/5') return -1;
+      return 1;
+    }
+
+    // Bass Clef: Middle line is D3 (d/3) and below is A2/B2/C3 -> stems UP (1). Above middle line F3 (f/3) -> stems DOWN (-1)
+    if (clef === 'bass') {
+      if (pitch === 'f/3') return -1;
+      return 1;
+    }
+
+    return 1;
+  }
+
   function renderScore() {
     const container = document.getElementById('notation-output');
     container.innerHTML = '';
@@ -1245,6 +1272,7 @@
     let currentX = 10;
     const allStaveNotes = [];
     const tieIndices = [];
+    const stemDirection = getCalculatedStemDirection(clef, pitch);
 
     measureGroups.forEach((group, mIdx) => {
       const width = measureWidths[mIdx] / scaleFactor;
@@ -1270,7 +1298,8 @@
         const note = new StaveNote({
           keys: [pitch],
           duration: p.vexDuration,
-          clef: isPercussion ? 'percussion' : clef
+          clef: isPercussion ? 'percussion' : clef,
+          stem_direction: stemDirection
         });
 
         if (p.isDotted) {
@@ -1356,6 +1385,8 @@
           first_indices: [0],
           last_indices: [0]
         });
+        // Ties curve under noteheads when stems point up (1); curve over when stems point down (-1)
+        tie.setDirection(stemDirection === 1 ? 1 : -1);
         tie.setContext(context).draw();
       }
     });
