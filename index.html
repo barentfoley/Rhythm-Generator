@@ -212,7 +212,7 @@
       background: #f1f5f9;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 4px 8px;
+      padding: 4px 6px;
       cursor: pointer;
       font-size: 0.82rem;
       display: inline-flex;
@@ -654,121 +654,110 @@
     }
   }
 
-  function createVexflowButtonIcon(vexDuration, isDotted, isRest, restType) {
-    const tempDiv = document.createElement('div');
+  // Precision vector SVG icons for the button palette
+  function getPaletteSVGIcon(token, isDotted) {
     const width = isDotted ? 42 : 36;
-    const height = 46;
+    const height = 44;
+    const dotSVG = isDotted ? `<circle cx="${width - 7}" cy="28" r="2.2" fill="#1e293b" />` : '';
 
-    // Direct clean SVG construction for precise block rests to ensure 1 single line centered and contained
-    if (isRest && (restType === 'w' || restType === 'h')) {
-      const isWhole = restType === 'w';
-      // In a 46px box, middle line is at y = 23.
-      // Whole rest hangs attached below line (y: 23 to 30)
-      // Half rest sits attached above line (y: 16 to 23)
-      const rectY = isWhole ? 23 : 16;
-      return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-        <!-- Single Staff Line fully contained inside button -->
-        <line x1="3" y1="23" x2="${width - 3}" y2="23" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
-        <!-- Rest block touching the single line directly -->
-        <rect x="${(width - 14) / 2}" y="${rectY}" width="14" height="7" fill="#1e293b" />
-      </svg>`;
+    switch (token) {
+      case 'w': // Whole note: centered open tilted ring
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(${isDotted ? 15 : 18}, 22)">
+            <ellipse cx="0" cy="0" rx="7.5" ry="5" fill="#1e293b" transform="rotate(-28)" />
+            <ellipse cx="0" cy="0" rx="4.5" ry="2.2" fill="#f1f5f9" transform="rotate(-48)" />
+          </g>
+          ${dotSVG}
+        </svg>`;
+
+      case 'h': // Half note: open notehead + stem up
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(${isDotted ? 14 : 15}, 28)">
+            <ellipse cx="0" cy="0" rx="6" ry="4.2" fill="#1e293b" transform="rotate(-28)" />
+            <ellipse cx="0" cy="0" rx="3.6" ry="1.9" fill="#f1f5f9" transform="rotate(-48)" />
+            <line x1="5.2" y1="-1" x2="5.2" y2="-20" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+          </g>
+          ${dotSVG}
+        </svg>`;
+
+      case 'q': // Quarter note: solid notehead + stem up
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(${isDotted ? 14 : 15}, 28)">
+            <ellipse cx="0" cy="0" rx="6" ry="4.3" fill="#1e293b" transform="rotate(-28)" />
+            <line x1="5.2" y1="-1" x2="5.2" y2="-20" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+          </g>
+          ${dotSVG}
+        </svg>`;
+
+      case '8': // 8th note: notehead + stem + 1 curved flag
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(${isDotted ? 13 : 14}, 28)">
+            <ellipse cx="0" cy="0" rx="5.8" ry="4.2" fill="#1e293b" transform="rotate(-28)" />
+            <line x1="5" y1="-1" x2="5" y2="-20" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M 5 -20 C 11 -18, 12 -12, 13 -8 C 11.5 -10, 8.5 -12, 5 -12" fill="#1e293b" />
+          </g>
+          ${dotSVG}
+        </svg>`;
+
+      case '16': // 16th note: notehead + stem + 2 curved flags
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(${isDotted ? 13 : 14}, 28)">
+            <ellipse cx="0" cy="0" rx="5.8" ry="4.2" fill="#1e293b" transform="rotate(-28)" />
+            <line x1="5" y1="-1" x2="5" y2="-20" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M 5 -20 C 11 -18, 12 -13, 13 -9 C 11.5 -11, 8.5 -13, 5 -13" fill="#1e293b" />
+            <path d="M 5 -14 C 11 -12, 12 -7, 13 -3 C 11.5 -5, 8.5 -7, 5 -7" fill="#1e293b" />
+          </g>
+          ${dotSVG}
+        </svg>`;
+
+      case 'wr': // Whole rest: ONE staff line contained, rest rectangle hanging directly underneath
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <line x1="4" y1="21" x2="${width - 4}" y2="21" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
+          <rect x="${(width - 13) / 2}" y="21" width="13" height="6.5" fill="#1e293b" />
+        </svg>`;
+
+      case 'hr': // Half rest: ONE staff line contained, rest rectangle sitting directly on top
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <line x1="4" y1="23" x2="${width - 4}" y2="23" stroke="#1e293b" stroke-width="1.6" stroke-linecap="round" />
+          <rect x="${(width - 13) / 2}" y="16.5" width="13" height="6.5" fill="#1e293b" />
+        </svg>`;
+
+      case 'qr': // Quarter rest: traditional squiggle centered
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 19 10 Q 23 14 20 18 Q 16 22 21 24 Q 24 25.5 19 32 Q 17 34 16 33 Q 19 28 17 26.5 Q 21 23 16 19 Q 21 16 18 10 Z" fill="#1e293b" />
+        </svg>`;
+
+      case '8r': // 8th rest: hook/ball and diagonal stroke
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(14, 12)">
+            <circle cx="3.5" cy="4" r="2.8" fill="#1e293b" />
+            <path d="M 5 4 Q 8 6 10 9 L 6 22 L 4 22 L 7.5 10 Q 5 7 1.5 6 Z" fill="#1e293b" />
+          </g>
+        </svg>`;
+
+      default:
+        return '';
     }
-
-    const renderer = new Renderer(tempDiv, Renderer.Backends.SVG);
-    renderer.resize(width, height);
-    const ctx = renderer.getContext();
-
-    // Vertically centered whole notehead and raised quarter/eighth rests
-    let staveY = -24;
-    let staveX = -6;
-
-    if (vexDuration === 'w') {
-      staveY = 2; // Centers whole note vertically
-      staveX = -4;
-    } else if (isRest) {
-      staveY = -42;
-    }
-
-    const stave = new Stave(staveX, staveY, width + 18);
-    stave.options.num_lines = 0;
-    stave.setBegBarType(Barline.type.NONE);
-    stave.setEndBarType(Barline.type.NONE);
-    stave.setContext(ctx).draw();
-
-    const note = new StaveNote({
-      keys: ['b/4'],
-      duration: vexDuration,
-      clef: 'treble'
-    });
-
-    if (isDotted) {
-      Dot.buildAndAttach([note], { all: true });
-    }
-
-    Formatter.FormatAndDraw(ctx, stave, [note]);
-
-    const svg = tempDiv.querySelector('svg');
-    if (svg) {
-      svg.querySelectorAll('rect').forEach(rect => {
-        const h = parseFloat(rect.getAttribute('height') || '0');
-        const w = parseFloat(rect.getAttribute('width') || '0');
-        if (h > 15 && w < 4) rect.remove();
-      });
-
-      svg.querySelectorAll('path').forEach(p => {
-        const d = p.getAttribute('d') || '';
-        if (d.startsWith('M0') || d.includes('V40') || d.includes('V-40')) {
-          p.remove();
-        }
-      });
-
-      svg.style.overflow = 'visible';
-      svg.style.width = width + 'px';
-      svg.style.height = height + 'px';
-      return svg.outerHTML;
-    }
-    return '';
   }
 
-  function createTiedQuarterIcon() {
-    const tempDiv = document.createElement('div');
-    const width = 50;
-    const height = 46;
+  // Tied quarters icon: stems facing DOWN, tie arch connecting ABOVE, fully centered
+  function getTiedQuartersSVGIcon() {
+    return `<svg width="48" height="44" viewBox="0 0 48 44" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tie arch above noteheads -->
+      <path d="M 13 16 C 18 8, 30 8, 35 16 C 30 11, 18 11, 13 16 Z" fill="#1e293b" />
+      
+      <!-- First note: notehead at (13, 20), stem pointing DOWN -->
+      <g transform="translate(13, 20)">
+        <ellipse cx="0" cy="0" rx="5.5" ry="3.8" fill="#1e293b" transform="rotate(-28)" />
+        <line x1="-4.6" y1="1" x2="-4.6" y2="18" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+      </g>
 
-    const renderer = new Renderer(tempDiv, Renderer.Backends.SVG);
-    renderer.resize(width, height);
-    const ctx = renderer.getContext();
-
-    // Stems down (-1) and tie arched over the top of the noteheads (-1)
-    const stave = new Stave(-4, -18, width + 12);
-    stave.options.num_lines = 0;
-    stave.setBegBarType(Barline.type.NONE);
-    stave.setEndBarType(Barline.type.NONE);
-    stave.setContext(ctx).draw();
-
-    const note1 = new StaveNote({ keys: ['b/4'], duration: 'q', clef: 'treble', stem_direction: -1 });
-    const note2 = new StaveNote({ keys: ['b/4'], duration: 'q', clef: 'treble', stem_direction: -1 });
-
-    Formatter.FormatAndDraw(ctx, stave, [note1, note2]);
-
-    const tie = new StaveTie({
-      first_note: note1,
-      last_note: note2,
-      first_indices: [0],
-      last_indices: [0]
-    });
-    tie.setDirection(-1); // Tie above notes
-    tie.setContext(ctx).draw();
-
-    const svg = tempDiv.querySelector('svg');
-    if (svg) {
-      svg.querySelectorAll('rect').forEach(r => r.remove());
-      svg.style.overflow = 'visible';
-      svg.style.width = width + 'px';
-      svg.style.height = height + 'px';
-      return svg.outerHTML;
-    }
-    return '';
+      <!-- Second note: notehead at (35, 20), stem pointing DOWN -->
+      <g transform="translate(35, 20)">
+        <ellipse cx="0" cy="0" rx="5.5" ry="3.8" fill="#1e293b" transform="rotate(-28)" />
+        <line x1="-4.6" y1="1" x2="-4.6" y2="18" stroke="#1e293b" stroke-width="1.8" stroke-linecap="round" />
+      </g>
+    </svg>`;
   }
 
   function updatePaletteButtons() {
@@ -789,11 +778,10 @@
       btn.onclick = () => handlePaletteNoteClick(item.token);
 
       if (mode === 'graphic') {
-        const iconSvg = createVexflowButtonIcon(item.vexDuration, isDotModifierActive, item.isRest, item.restType);
-        btn.innerHTML = `${iconSvg}`;
+        btn.innerHTML = getPaletteSVGIcon(item.token, isDotModifierActive && !item.isRest);
         btn.title = `${item.name} (${item.token})`;
       } else {
-        const dotSuffix = isDotModifierActive ? '.' : '';
+        const dotSuffix = (isDotModifierActive && !item.isRest) ? '.' : '';
         btn.textContent = `${item.name} (${item.token}${dotSuffix})`;
       }
       palette.appendChild(btn);
@@ -801,8 +789,7 @@
 
     const tieBtn = document.createElement('button');
     tieBtn.onclick = addTieToLast;
-    const tieIconSvg = createTiedQuarterIcon();
-    tieBtn.innerHTML = `${tieIconSvg}<span style="margin-left: 2px; font-weight:600;">Tie</span>`;
+    tieBtn.innerHTML = `${getTiedQuartersSVGIcon()}<span style="margin-left: 1px; font-weight:600;">Tie</span>`;
     palette.appendChild(tieBtn);
 
     const showBeamTool = document.getElementById('toggleManualBeamTool').checked;
@@ -824,7 +811,7 @@
     backspaceBtn.className = 'edit-btn';
     backspaceBtn.onclick = handleBackspace;
     backspaceBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg><span style="margin-left: 4px;">Delete</span>`;
-    backspaceBtn.title = "Turn note into rest or remove end";
+    backspaceBtn.title = "Turn selected note into rest or remove end item";
     palette.appendChild(backspaceBtn);
 
     const undoBtn = document.createElement('button');
@@ -990,6 +977,7 @@
 
     if (selectedTokenIndex !== null && selectedTokenIndex >= 0 && selectedTokenIndex < parsed.length) {
       const target = parsed[selectedTokenIndex];
+      // Only convert notes into equivalent rests; rests cannot be deleted
       if (!target.isRest) {
         let restToken = target.durType + 'r';
         parsed[selectedTokenIndex] = parseDurationToken(restToken, null);
@@ -1404,7 +1392,7 @@
     img.src = url;
   }
 
-  // Load random preset
+  // Choose a random preset on load
   const randomPreset = defaultPresets[Math.floor(Math.random() * defaultPresets.length)];
   document.getElementById('rhythmInput').value = randomPreset;
   pushHistory();
